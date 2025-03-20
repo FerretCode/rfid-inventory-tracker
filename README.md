@@ -27,6 +27,13 @@ A system for automatically registering and tracking physical products using RFID
 -   Can view statistics about items, reads, writes, etc.
 -   Telemetry
 -   Can also generate item lists for writing to write to the microSD card on the writer
+-   Can be deployed easily using IaC tooling
+
+## Dashboard Stack
+-   Golang
+-   JWT
+-   SQLC
+-   PostgreSQL
 
 # Broker Requirements
 
