@@ -7,10 +7,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 pico_sdk_init()
 
+
 add_executable(reader
     reader.c
     mqtt.c
+    item_registration.c
     lib/pico-mfrc522/mfrc522.c
+    lib/cJSON/cJSON.c
+)
+
+
+target_compile_definitions(reader PRIVATE
+    WIFI_SSID=\"${WIFI_SSID}\"
+    WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
+    MODE=\"writer\"
 )
 
 target_include_directories(reader PRIVATE
@@ -24,9 +34,8 @@ target_include_directories(reader PRIVATE
     ${PICO_SDK_PATH}/src/rp2_common/hardware_spi/include
     ${PICO_SDK_PATH}/src/common/pico_base/include
     lib/pico-mfrc522
+    lib/cJSON
     .
-    lwipopts
-    lwipopts/arch
 )
 
 target_link_libraries(reader

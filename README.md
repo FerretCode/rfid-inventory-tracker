@@ -6,7 +6,7 @@ A system for automatically registering and tracking physical products using RFID
 
 -   A central MQTT broker listens for requests from the reader/writer board
 -   When registering new items, the operator will be given a sequential list of new items
-    -   New items are supplied via an SD card
+    - New items are procedurally added via MQTT
     -   The reader/writer will iterate through a list of items, displaying the item name/ID on the LCD
     -   The operator will scan the corresponding RFID tag and confirm it via a button
     -   The reader/writer will send a request to the MQTT broker to update the item with the correct RFID tag
@@ -26,7 +26,7 @@ A system for automatically registering and tracking physical products using RFID
 -   May also be connected to SQL or use MQTT for item requests
 -   Can view statistics about items, reads, writes, etc.
 -   Telemetry
--   Can also generate item lists for writing to write to the microSD card on the writer
+-   Can send new items to be associated with an RFID tag over MQTT to the writer
 -   Can be deployed easily using IaC tooling
 
 ## Dashboard Stack
@@ -57,6 +57,7 @@ A system for automatically registering and tracking physical products using RFID
 -   Supports microSD for logging & configuration
 -   An LCD screen to display info
 -   Controlled by RPI Pico W
+-   Potentiometer to control tag quantities
 
 # Bill of Materials
 

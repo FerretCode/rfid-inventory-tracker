@@ -1,6 +1,7 @@
 #include "lwip/apps/mqtt.h"
 #include "lwip/dns.h"
 #include "lwip/tcp.h"
+#include "mqtt.h"
 #include "pico/cyw43_arch.h"
 
 #define DNS_OK 0
@@ -9,16 +10,7 @@
 #define MQTT_OK 0
 #define MQTT_ERR 0
 
-typedef struct MQTT_CLIENT_T_ {
-    ip_addr_t remote_addr;
-    int remote_port;
-    mqtt_client_t* mqtt_client;
-    u32_t received;
-    u32_t counter;
-    u32_t reconnect;
-} MQTT_CLIENT_T;
-
-static MQTT_CLIENT_T* mqtt_client_init(int remote_port)
+MQTT_CLIENT_T* mqtt_client_init(int remote_port)
 {
     MQTT_CLIENT_T* state = (MQTT_CLIENT_T*)calloc(1, sizeof(MQTT_CLIENT_T));
     if (!state) {
@@ -28,6 +20,17 @@ static MQTT_CLIENT_T* mqtt_client_init(int remote_port)
 
     state->received = 0;
     state->remote_port = remote_port;
+    return state;
+}
+
+MQTT_CLIENT_T* mqtt_dummy_init()
+{
+    MQTT_CLIENT_T* state = (MQTT_CLIENT_T*)calloc(1, sizeof(MQTT_CLIENT_T));
+    if (!state) {
+        printf("failed to allocate state\n");
+        return NULL;
+    }
+
     return state;
 }
 
@@ -89,7 +92,12 @@ int mqtt_connect(MQTT_CLIENT_T* state)
     return err;
 }
 
-int init_mqtt(char* ssid, char* pw, char* broker_hostname, int broker_port, uint8_t timeout)
+/**
+ * Create a connection to the MQTT broker
+ * Will return a MQTT client, but before use the err field should be checked
+ * If there was an error initializing the connection, the client should not be used
+ */
+MQTT_CLIENT_T* init_mqtt(char* ssid, char* pw, char* broker_hostname, int broker_port, uint8_t timeout)
 {
     if (cyw43_arch_init()) {
         printf("Failed to initialize MQTT\n");
@@ -101,7 +109,11 @@ int init_mqtt(char* ssid, char* pw, char* broker_hostname, int broker_port, uint
     if (cyw43_arch_wifi_connect_timeout_ms(
             ssid, pw, CYW43_AUTH_WPA2_AES_PSK, timeout)) {
         printf("Failed to connect to WiFi\n");
-        return 1;
+        MQTT_CLIENT_T* state = mqtt_dummy_init();
+        if (!state) {
+            return NULL;
+        }
+        state->err = ERR_CONN;
     } else {
         printf("Connected to WiFi");
     }
@@ -110,7 +122,8 @@ int init_mqtt(char* ssid, char* pw, char* broker_hostname, int broker_port, uint
 
     int res = run_dns_lookup(state, broker_hostname);
     if (res == DNS_ERR) {
-        return res;
+        state->err = DNS_ERR;
+        return state;
     }
 
     state->mqtt_client = mqtt_client_new();
@@ -118,8 +131,17 @@ int init_mqtt(char* ssid, char* pw, char* broker_hostname, int broker_port, uint
 
     if (state->mqtt_client == NULL) {
         printf("Failed to create new MQTT client\n");
-        return MQTT_ERR;
+        state->err = MQTT_ERR;
+        return state;
     }
 
-    return 0;
+    res = mqtt_connect(state);
+
+    if (res != ERR_OK) {
+        printf("Error connecting to MQTT broker\n");
+        state->err = res;
+        return state;
+    }
+
+    return state;
 }
