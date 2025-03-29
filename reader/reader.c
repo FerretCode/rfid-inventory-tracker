@@ -1,5 +1,7 @@
 #include "mfrc522.h"
 #include "pico/stdio.h"
+#include <stdint.h>
+#include <string.h>
 
 int main()
 {

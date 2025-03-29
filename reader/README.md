@@ -8,11 +8,14 @@ The software and hardware for the reader board
 # Driver Attributions
 - https://github.com/BenjaminModica/pico-mfrc522 <- for the MFRC522 RFID module
 
+# Note
+The MQTT implementation inside `lwip` requires the SNI patch
+
 # Building Instructions
 ```
 mkdir -p build
 cd build
-cmake ..
+cmake -DPICO_BOARD=pico_w ..
 make
 ```
 - From there, the built `uf2` file can be flashed onto the RPI Pico W 
