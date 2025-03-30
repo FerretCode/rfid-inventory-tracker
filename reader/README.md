@@ -15,7 +15,7 @@ The MQTT implementation inside `lwip` requires the SNI patch
 ```
 mkdir -p build
 cd build
-cmake -DPICO_BOARD=pico_w ..
+cmake .. -DPICO_BOARD=pico_w -DBROKER_HOSTNAME=mqtt_host -DBROKER_PORT=mqtt_port -WIFI_SSID=wifi_ssid -WIFI_PASSWORD=wifi_password
 make
 ```
 - From there, the built `uf2` file can be flashed onto the RPI Pico W 

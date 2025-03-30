@@ -3,45 +3,43 @@
 #include "mqtt.h"
 #include "string.h"
 
-void subscribe_incoming_items(mqtt_client_t* client, void* arg, mqtt_connection_status_t status)
+void subscribe_incoming_items(MQTT_CLIENT_T* state)
 {
-    if (status == MQTT_CONNECT_ACCEPTED) {
-        mqtt_set_inpub_callback(
-            client,
-            process_incoming_item_pub,
-            process_incoming_item_data,
-            arg);
+    mqtt_set_inpub_callback(
+        state->mqtt_client,
+        NULL,
+        process_incoming_item_data,
+        NULL);
+
+    if (mqtt_client_is_connected(state->mqtt_client) == 1) {
         mqtt_subscribe(
-            client,
+            state->mqtt_client,
             SUB_TOPIC,
             1,
-            NULL,
+            subscribed_topic,
             NULL);
     } else {
-        printf("Failed to subscribe to incoming item requetss\n");
-        // TODO: consider reconnection logic
+        printf("MQTT client is not connected.\n");
     }
 }
 
-void process_incoming_item_pub(void* arg, const char* topic, u32_t total_len)
+void subscribed_topic(void* arg, err_t err)
 {
-    // ensure that the message is part of the correct topic
-    int is_correct_topic = strcmp(topic, SUB_TOPIC);
-    if (is_correct_topic) {
-        inpub_id = 1;
+    printf("Subscription callback triggered\n");
+    if (err != ERR_OK) {
+        printf("Error subscribing. Err: %d\n", err);
+    } else {
+        printf("Successfully subscribed.\n");
     }
-
-    inpub_id = -1;
 }
 
 void process_incoming_item_data(void* arg, const u8_t* data, u16_t total_len, u8_t flags)
 {
     if (flags & MQTT_DATA_FLAG_LAST) {
-        if (inpub_id != 1) {
-            return;
-        } else {
-            // TODO: add to queue of items to show
-        }
+        printf("New item to register!\n");
+        printf("Received Length: %d\n", total_len);
+        printf("MQTT Payload: %.*s\n", total_len, (const char*)data);
+        // TODO: add to queue of items to show
     }
 }
 

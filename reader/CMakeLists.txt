@@ -20,6 +20,8 @@ add_executable(reader
 target_compile_definitions(reader PRIVATE
     WIFI_SSID=\"${WIFI_SSID}\"
     WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
+    BROKER_HOSTNAME=\"${BROKER_HOSTNAME}\"
+    BROKER_PORT=\"${BROKER_PORT}\"
     MODE=\"writer\"
 )
 

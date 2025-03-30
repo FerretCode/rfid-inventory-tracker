@@ -49,11 +49,9 @@
 #define DHCP_DOES_ARP_CHECK 0
 #define LWIP_DHCP_DOES_ACD_CHECK 0
 
-#ifndef NDEBUG
 #define LWIP_DEBUG 1
-#define LWIP_STATS 1
-#define LWIP_STATS_DISPLAY 1
-#endif
+#define LWIP_STATS 0
+#define LWIP_STATS_DISPLAY 0
 
 // #define MEM_OVERFLOW_CHECK 1
 // #define MEMP_OVERFLOW_CHECK 1

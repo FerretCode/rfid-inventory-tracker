@@ -12,13 +12,15 @@ typedef struct ITEM_T_ {
     uint8_t tag[8];
 } ITEM_T;
 
-static int inpub_id = 0;
-
 /**
  * Create the subscription to the incoming items topic
- * Should be passed as the callback to the MQTT connection succeeded event
  */
-void subscribe_incoming_items(mqtt_client_t* client, void* arg, mqtt_connection_status_t status);
+void subscribe_incoming_items(MQTT_CLIENT_T* state);
+
+/**
+ * The callback upon subscription
+ */
+void subscribed_topic(void* arg, err_t err);
 
 /**
  * Publish the item with its tag back to the MQTT broker after the item is processed

@@ -1,24 +1,33 @@
+#include "item_registration.h"
 #include "mfrc522.h"
 #include "mqtt.h"
+#include "pico/cyw43_arch.h"
 #include "pico/stdio.h"
+#include "string.h"
 #include <stdint.h>
 #include <string.h>
 
 int main()
 {
 
-    char* broker_hostname = "test";
-    int broker_port = 3000;
-    uint8_t mqtt_timeout = 30000;
+    int mqtt_timeout = 30000;
 
     stdio_init_all();
 
-    MQTT_CLIENT_T* state = init_mqtt(
-        WIFI_SSID,
-        WIFI_PASSWORD,
-        broker_hostname,
-        broker_port,
-        mqtt_timeout);
+    sleep_ms(2000);
+
+    printf("Starting reader...\n");
+    printf(
+        "WIFI_SSID: %s, WIFI_PASSWORD: %s, BROKER_HOSTNAME: %s, BROKER_PORT: %s\n",
+        WIFI_SSID, WIFI_PASSWORD, BROKER_HOSTNAME, BROKER_PORT);
+
+    MQTT_CLIENT_T* state
+        = init_mqtt(
+            WIFI_SSID,
+            WIFI_PASSWORD,
+            BROKER_HOSTNAME,
+            (u16_t)atoi(BROKER_PORT),
+            mqtt_timeout);
 
     // check if MQTT connection succeeded
     /* there is a chance that if the board could not connect to WiFi
@@ -34,7 +43,14 @@ int main()
         return 1;
     }
 
-    if (MODE == "reader") {
+    for (int i = 0; i < 50; i++) {
+        cyw43_arch_poll();
+        sleep_ms(100);
+    }
+
+    int mode_comparison = strcmp(MODE, "reader");
+    if (mode_comparison == 0) {
+        printf("Starting in reader mode\n");
         uint8_t tag1[] = { 0x93, 0xE3, 0x9A, 0x92 };
 
         MFRC522Ptr_t mfrc = MFRC522_Init();
@@ -65,5 +81,12 @@ int main()
             }
         }
     } else {
+        printf("Starting in writer mode \n");
+        subscribe_incoming_items(state);
+
+        while (true) {
+            cyw43_arch_poll();
+            sleep_ms(100);
+        }
     }
 }
