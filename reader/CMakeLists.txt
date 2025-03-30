@@ -13,6 +13,7 @@ add_executable(reader
     mqtt.c
     item_registration.c
     lib/pico-mfrc522/mfrc522.c
+    lib/pico-ssd1306/ssd1306.c
     lib/cJSON/cJSON.c
 )
 
@@ -36,6 +37,7 @@ target_include_directories(reader PRIVATE
     ${PICO_SDK_PATH}/src/rp2_common/hardware_spi/include
     ${PICO_SDK_PATH}/src/common/pico_base/include
     lib/pico-mfrc522
+    lib/pico-ssd1306
     lib/cJSON
     .
 )

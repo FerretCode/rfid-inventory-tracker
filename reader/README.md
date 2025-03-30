@@ -8,14 +8,16 @@ The software and hardware for the reader board
 # Driver Attributions
 - https://github.com/BenjaminModica/pico-mfrc522 <- for the MFRC522 RFID module
 
-# Note
-The MQTT implementation inside `lwip` requires the SNI patch
+# Notes
+- The MQTT implementation inside `lwip` requires the SNI patch
+- The `lwip` MQTT implementation does not support persistent sessions. This means that the writer board must be online when new item registration requests are sent from the dashboard.
+
 
 # Building Instructions
 ```
 mkdir -p build
 cd build
-cmake .. -DPICO_BOARD=pico_w -DBROKER_HOSTNAME=mqtt_host -DBROKER_PORT=mqtt_port -WIFI_SSID=wifi_ssid -WIFI_PASSWORD=wifi_password
+cmake -DPICO_BOARD=pico_w -DBROKER_HOSTNAME=mqtt_host -DBROKER_PORT=mqtt_port -DWIFI_SSID=wifi_ssid -DWIFI_PASSWORD=wifi_password ..
 make
 ```
 - From there, the built `uf2` file can be flashed onto the RPI Pico W 

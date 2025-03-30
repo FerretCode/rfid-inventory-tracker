@@ -9,13 +9,21 @@
 typedef struct ITEM_T_ {
     u32_t item_id;
     u32_t tag_quantity;
-    uint8_t tag[8];
+    uint8_t tag[4];
 } ITEM_T;
+
+typedef struct Task {
+    ITEM_T* item;
+    struct Task* next;
+} Task;
+
+void enqueue_task(struct Task**, ITEM_T*);
+ITEM_T* dequeue_task(struct Task**);
 
 /**
  * Create the subscription to the incoming items topic
  */
-void subscribe_incoming_items(MQTT_CLIENT_T* state);
+void subscribe_incoming_items(MQTT_CLIENT_T* state, Task** head);
 
 /**
  * The callback upon subscription
