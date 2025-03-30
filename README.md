@@ -57,7 +57,6 @@ A system for automatically registering and tracking physical products using RFID
 -   Supports microSD for logging & configuration
 -   An LCD screen to display info
 -   Controlled by RPI Pico W
--   Potentiometer to control tag quantities
 
 # Bill of Materials
 
