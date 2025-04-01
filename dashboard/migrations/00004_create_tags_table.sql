@@ -1,15 +1,16 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE users (
+CREATE TABLE tags (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Username text UNIQUE,
-    PasswordDigest text,
-    Permissions INTEGER,
-    FOREIGN KEY(Permissions) REFERENCES permissions(Id)
+    Uid text,
+    Item INTEGER,
+    Quantity INTEGER,
+    TagType text,
+    FOREIGN KEY(Item) REFERENCES items(Id)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE users
+DROP TABLE tags
 -- +goose StatementEnd

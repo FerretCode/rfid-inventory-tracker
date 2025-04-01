@@ -38,7 +38,9 @@ int main()
     ssd1306_init(&display, 128, 32, 0x3C, I2C_PORT);
     ssd1306_clear(&display);
 
-    ssd1306_draw_string(&display, 0, 0, 1, "hello world");
+    sleep_ms(3000);
+
+    ssd1306_draw_string(&display, 0, 0, 1, "Starting board...");
     ssd1306_show(&display);
 
     sleep_ms(2000);
@@ -100,18 +102,18 @@ int main()
                 printf("%x ", mfrc->uid.uidByte[i]);
             }
             printf("\n\r");
-
-            if (memcmp(mfrc->uid.uidByte, tag1, 4) == 0) {
-                printf("Authentication Success\n\r");
-            } else {
-                printf("Authentication Failed\n\r");
-            }
         }
     } else {
         printf("Starting in writer mode \n");
         struct Task* queue = NULL;
 
         subscribe_incoming_items(state, &queue);
+
+        ssd1306_clear(&display);
+        ssd1306_draw_string(&display, 0, 0, 1, "Waiting for items.");
+        ssd1306_show(&display);
+
+        sleep_ms(2000);
 
         bool needs_item = true;
         bool can_publish = false;
@@ -135,7 +137,21 @@ int main()
                 continue;
             }
 
-            // TODO: display item id
+            char quantity_string[32];
+            snprintf(quantity_string, sizeof(quantity_string), "Tag Quantity: %d", item->tag_quantity);
+
+            char item_name[32];
+            // truncate item name if it exceeds the buffer size
+            if (sizeof(item->item_name) <= 27) {
+                snprintf(item_name, sizeof(item_name), "Item: %.27s", item->item_name);
+            } else {
+                snprintf(item_name, sizeof(item_name), "Item: %.24s...", item->item_name);
+            }
+
+            ssd1306_clear(&display);
+            ssd1306_draw_string(&display, 0, 0, 1, item_name);
+            ssd1306_draw_string(&display, 0, 15, 1, quantity_string);
+            ssd1306_show(&display);
 
             if (needs_tag) {
                 if (!PICC_IsNewCardPresent(mfrc)) {
@@ -183,6 +199,10 @@ int main()
             publish_item_registered(state, item);
 
             // reset state to wait for the next item
+            ssd1306_clear(&display);
+            ssd1306_draw_string(&display, 0, 0, 1, "Waiting for items.");
+            ssd1306_show(&display);
+
             item = NULL;
             needs_item = true;
             needs_tag = true;

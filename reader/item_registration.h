@@ -8,6 +8,7 @@
 
 typedef struct ITEM_T_ {
     u32_t item_id;
+    const char* item_name;
     u32_t tag_quantity;
     uint8_t tag[4];
 } ITEM_T;

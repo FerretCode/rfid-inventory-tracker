@@ -114,8 +114,20 @@ void process_incoming_item_data(void* arg, const u8_t* data, u16_t total_len, u8
             return;
         }
 
+        cJSON* item_name = cJSON_GetObjectItemCaseSensitive(json, "item_name");
+
+        if (!cJSON_IsString(item_name)) {
+            printf("Invalid JSON payload format\n");
+            cJSON_Delete(item_id);
+            cJSON_Delete(tag_quantity);
+            cJSON_Delete(json);
+            cJSON_Delete(item_name);
+            return;
+        }
+
         item->item_id = cJSON_GetNumberValue(item_id);
         item->tag_quantity = cJSON_GetNumberValue(tag_quantity);
+        item->item_name = cJSON_GetStringValue(item_name);
 
         enqueue_task(head, item);
     }

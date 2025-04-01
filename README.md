@@ -115,7 +115,7 @@ This table has information about different RFID tags
 | Column Name | Type   | Description                                              | Flags                              |
 | ----------- | ------ | -------------------------------------------------------- | ---------------------------------- |
 | Id          | Number | The ID of the item                                       | Primary Key, Unique, Autoincrement |
-| RFIDId      | Number | The RFID Tag                                             | Foreign Key, references RFID ID    |
+| Uid         | String | The RFID Tag                                             | Foreign Key, references RFID ID    |
 | ItemId      | Number | The corresponding item ID                                | Foreign Key, references item ID    |
 | Quantity    | Number | The number of items corresponding with this RFID tag     |
 | TagType     | String | The tag type (pallet, container-full) used for telemetry |
