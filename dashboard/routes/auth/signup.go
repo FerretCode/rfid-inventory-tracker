@@ -10,7 +10,6 @@ import (
 	"github.com/ferretcode/rfid-inventory-tracker/repositories"
 	"github.com/ferretcode/rfid-inventory-tracker/types"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/matthewhartstonge/argon2"
 )
 
 func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
@@ -25,9 +24,7 @@ func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) er
 		return err
 	}
 
-	argon := argon2.DefaultConfig()
-
-	digest, err := argon.HashEncoded([]byte(signupRequest.Password))
+	digest, err := ctx.Argon2.HashEncoded([]byte(signupRequest.Password))
 	if err != nil {
 		return err
 	}
@@ -71,7 +68,7 @@ func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) er
 		return err
 	}
 
-	_, err = qtx.CreateUser(ctx.Ctx, repositories.CreateUserParams{
+	user, err := qtx.CreateUser(ctx.Ctx, repositories.CreateUserParams{
 		Username:       sql.NullString{signupRequest.Username, true},
 		Passworddigest: sql.NullString{string(digest), true},
 		Permissions:    sql.NullInt64{permissions.ID, true},
@@ -82,12 +79,13 @@ func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) er
 
 	claims := jwt.MapClaims{
 		"username": signupRequest.Username,
+		"user_id":  user.ID,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString(ctx.Config.JwtSigningSecret)
+	signedToken, err := token.SignedString([]byte(ctx.Config.JwtSigningSecret))
 	if err != nil {
 		return err
 	}
@@ -106,7 +104,7 @@ func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) er
 	}
 
 	w.WriteHeader(200)
-	http.Redirect(w, r, "/dashboard", http.StatusFound)
+	http.Redirect(w, r, "/dashboard/home", http.StatusFound)
 
 	return nil
 }

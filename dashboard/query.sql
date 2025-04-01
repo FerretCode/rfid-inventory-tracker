@@ -2,6 +2,10 @@
 SELECT * FROM users
 WHERE Id = ? LIMIT 1;
 
+-- name: GetUserByUsername :one
+SELECT * FROM users
+WHERE Username = ? LIMIT 1;
+
 -- name: ListUsers :many
 SELECT * FROM users
 ORDER BY Id;

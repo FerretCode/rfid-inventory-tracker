@@ -393,6 +393,23 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT id, username, passworddigest, permissions FROM users
+WHERE Username = ? LIMIT 1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username sql.NullString) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Passworddigest,
+		&i.Permissions,
+	)
+	return i, err
+}
+
 const listItems = `-- name: ListItems :many
 SELECT id, name, sku, category FROM items
 ORDER BY Id

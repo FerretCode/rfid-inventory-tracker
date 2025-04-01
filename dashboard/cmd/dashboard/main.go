@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"github.com/matthewhartstonge/argon2"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -24,7 +26,7 @@ func main() {
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	if _, err := os.Stat(".env"); err != nil {
+	if _, err := os.Stat(".env"); err == nil {
 		if err := godotenv.Load(".env"); err != nil {
 			slog.Error("error loading .env", "err", err)
 			return
@@ -46,12 +48,14 @@ func main() {
 	defer conn.Close()
 
 	repositories := repositories.New(conn)
+	argon2 := argon2.DefaultConfig()
 
 	requestContext := types.RequestContext{
 		DB:           conn,
 		Repositories: repositories,
 		Ctx:          ctx,
 		Config:       &config,
+		Argon2:       &argon2,
 	}
 
 	r := chi.NewRouter()
@@ -60,17 +64,28 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 
-	r.Route("/", func(r chi.Router) {
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signup", func(w http.ResponseWriter, r *http.Request) {
-				handleError(auth.Signup(w, r, requestContext), w, "signup")
-			})
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/signup", func(w http.ResponseWriter, r *http.Request) {
+			handleError(auth.Signup(w, r, requestContext), w, "signup")
+		})
 
-			r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
-
-			})
+		r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+			handleError(auth.Login(w, r, requestContext), w, "login")
 		})
 	})
+
+	r.Route("/dashboard", func(r chi.Router) {
+		r.Use(auth.CheckAuth(&config, repositories))
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/dashboard/home", http.StatusFound)
+		})
+
+		r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		})
+	})
+
+	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r)
 }
 
 func handleError(err error, w http.ResponseWriter, svc string) {

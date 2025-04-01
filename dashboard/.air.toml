@@ -1,0 +1,12 @@
+root = "."
+tmp_dir = "tmp"
+[build]
+cmd = "CGO_ENABLED=1 go build -o ./tmp/main ./cmd/dashboard"
+bin = "./tmp/main"
+include_ext = ["go", "yml", "html"]
+exclude_dir = ["tmp", "vendor"]
+delay = 1000
+[log]
+time = true
+[misc]
+clean_on_exit = true
