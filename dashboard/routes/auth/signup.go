@@ -2,8 +2,7 @@ package auth
 
 import (
 	"database/sql"
-	"encoding/json"
-	"io"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -12,17 +11,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+func RenderSignupTemplate(w http.ResponseWriter, r *http.Request, template *template.Template) error {
+	return template.ExecuteTemplate(w, "signup.html", nil)
+}
+
 func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
 	signupRequest := types.SignupRequest{}
 
-	body, err := io.ReadAll(r.Body)
+	err := r.ParseForm()
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(body, &signupRequest); err != nil {
-		return err
-	}
+	signupRequest.Username = r.PostFormValue("username")
+	signupRequest.Password = r.PostFormValue("password")
 
 	digest, err := ctx.Argon2.HashEncoded([]byte(signupRequest.Password))
 	if err != nil {
@@ -103,7 +105,6 @@ func Signup(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) er
 		return err
 	}
 
-	w.WriteHeader(200)
 	http.Redirect(w, r, "/dashboard/home", http.StatusFound)
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 func verifyJWT(tokenStr string, config *types.Config) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		if token.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(config.JwtSigningSecret), nil
@@ -23,13 +24,17 @@ func verifyJWT(tokenStr string, config *types.Config) (jwt.MapClaims, error) {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if expiration, ok := claims["exp"].(int64); ok {
-			expirationTime := time.Unix(expiration, 0)
+	claims := token.Claims.(jwt.MapClaims)
+
+	if token.Valid {
+		if expiration, ok := claims["exp"].(float64); ok {
+			expirationTime := time.Unix(int64(expiration), 0)
 
 			if time.Now().After(expirationTime) {
 				return nil, errors.New("token has expired")
 			}
+		} else {
+			return nil, errors.New("could not parse expiration time")
 		}
 
 		return claims, nil
@@ -38,9 +43,8 @@ func verifyJWT(tokenStr string, config *types.Config) (jwt.MapClaims, error) {
 	return nil, errors.New("invalid token claims")
 }
 
-func CheckAuth(config *types.Config, repositories *repositories.Queries) func(next http.Handler) http.Handler {
+func CheckAuth(config *types.Config, repositories *repositories.Queries, logger *slog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie("dashboard")
 			if err != nil {
@@ -50,21 +54,33 @@ func CheckAuth(config *types.Config, repositories *repositories.Queries) func(ne
 
 			claims, err := verifyJWT(cookie.Value, config)
 			if err != nil {
+
 				http.Error(w, "invalid token", http.StatusUnauthorized)
 				return
 			}
 
-			user, err := repositories.GetUser(r.Context(), int64(claims["user_id"].(float64)))
-			if err != nil {
-				http.Error(w, "error getting user", http.StatusInternalServerError)
+			if userId, ok := claims["user_id"].(float64); ok {
+				user, err := repositories.GetUser(r.Context(), int64(userId))
+				if err != nil {
+					http.Error(w, "error getting user", http.StatusInternalServerError)
+					return
+				}
+
+				permissions, err := repositories.GetPermission(r.Context(), user.Permissions.Int64)
+				if err != nil {
+					http.Error(w, "error getting user permissions", http.StatusInternalServerError)
+					return
+				}
+
+				ctx := context.WithValue(r.Context(), "user", user)
+				ctx = context.WithValue(ctx, "permission", permissions)
+
+				next.ServeHTTP(w, r.WithContext(ctx))
+
 				return
 			}
 
-			fmt.Println(user)
-
-			ctx := context.WithValue(r.Context(), "user", user)
-
-			next.ServeHTTP(w, r.WithContext(ctx))
+			http.Error(w, "there was an error authenticating you", http.StatusInternalServerError)
 		})
 	}
 }

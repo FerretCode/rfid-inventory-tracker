@@ -17,24 +17,18 @@ INSERT INTO items (
     Sku,
     Category
 ) VALUES (
-    ?, ?, ?, ?
+    NULL, ?, ?, ?
 ) RETURNING id, name, sku, category
 `
 
 type CreateItemParams struct {
-	ID       int64
-	Name     sql.NullString
-	Sku      sql.NullString
-	Category sql.NullString
+	Name     sql.NullString `json:"name"`
+	Sku      sql.NullString `json:"sku"`
+	Category sql.NullString `json:"category"`
 }
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, createItem,
-		arg.ID,
-		arg.Name,
-		arg.Sku,
-		arg.Category,
-	)
+	row := q.db.QueryRowContext(ctx, createItem, arg.Name, arg.Sku, arg.Category)
 	var i Item
 	err := row.Scan(
 		&i.ID,
@@ -54,22 +48,20 @@ INSERT INTO permissions (
     PrepareTags,
     ManageUsers
 ) VALUES (
-    ?, ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?, ?
 ) RETURNING id, viewtelemetry, viewitems, manageitems, preparetags, manageusers, lastupdated
 `
 
 type CreatePermissionParams struct {
-	ID            int64
-	Viewtelemetry sql.NullBool
-	Viewitems     sql.NullBool
-	Manageitems   sql.NullBool
-	Preparetags   sql.NullBool
-	Manageusers   sql.NullBool
+	Viewtelemetry sql.NullBool `json:"viewtelemetry"`
+	Viewitems     sql.NullBool `json:"viewitems"`
+	Manageitems   sql.NullBool `json:"manageitems"`
+	Preparetags   sql.NullBool `json:"preparetags"`
+	Manageusers   sql.NullBool `json:"manageusers"`
 }
 
 func (q *Queries) CreatePermission(ctx context.Context, arg CreatePermissionParams) (Permission, error) {
 	row := q.db.QueryRowContext(ctx, createPermission,
-		arg.ID,
 		arg.Viewtelemetry,
 		arg.Viewitems,
 		arg.Manageitems,
@@ -97,21 +89,19 @@ INSERT INTO tags (
     Quantity,
     TagType
 ) VALUES (
-    ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?
 ) RETURNING id, uid, item, quantity, tagtype
 `
 
 type CreateTagParams struct {
-	ID       int64
-	Uid      sql.NullString
-	Item     sql.NullInt64
-	Quantity sql.NullInt64
-	Tagtype  sql.NullString
+	Uid      sql.NullString `json:"uid"`
+	Item     sql.NullInt64  `json:"item"`
+	Quantity sql.NullInt64  `json:"quantity"`
+	Tagtype  sql.NullString `json:"tagtype"`
 }
 
 func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, error) {
 	row := q.db.QueryRowContext(ctx, createTag,
-		arg.ID,
 		arg.Uid,
 		arg.Item,
 		arg.Quantity,
@@ -139,24 +129,22 @@ INSERT INTO transactions (
     Source,
     "Timestamp"
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING id, tag, item, quantitychanged, newquantity, transactiondirection, source, Timestamp
 `
 
 type CreateTransactionParams struct {
-	ID                   int64
-	Tag                  sql.NullInt64
-	Item                 sql.NullInt64
-	Quantitychanged      sql.NullInt64
-	Newquantity          sql.NullInt64
-	Transactiondirection sql.NullString
-	Source               sql.NullString
-	Timestamp            sql.NullTime
+	Tag                  sql.NullInt64  `json:"tag"`
+	Item                 sql.NullInt64  `json:"item"`
+	Quantitychanged      sql.NullInt64  `json:"quantitychanged"`
+	Newquantity          sql.NullInt64  `json:"newquantity"`
+	Transactiondirection sql.NullString `json:"transactiondirection"`
+	Source               sql.NullString `json:"source"`
+	Timestamp            sql.NullTime   `json:"Timestamp"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
 	row := q.db.QueryRowContext(ctx, createTransaction,
-		arg.ID,
 		arg.Tag,
 		arg.Item,
 		arg.Quantitychanged,
@@ -186,24 +174,18 @@ INSERT INTO users (
     PasswordDigest,
     Permissions
 ) VALUES (
-    ?, ?, ?, ?
+    NULL, ?, ?, ?
 ) RETURNING id, username, passworddigest, permissions
 `
 
 type CreateUserParams struct {
-	ID             int64
-	Username       sql.NullString
-	Passworddigest sql.NullString
-	Permissions    sql.NullInt64
+	Username       sql.NullString `json:"username"`
+	Passworddigest sql.NullString `json:"passworddigest"`
+	Permissions    sql.NullInt64  `json:"permissions"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
-		arg.ID,
-		arg.Username,
-		arg.Passworddigest,
-		arg.Permissions,
-	)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Passworddigest, arg.Permissions)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -556,10 +538,10 @@ WHERE Id = ?
 `
 
 type UpdateItemParams struct {
-	Name     sql.NullString
-	Sku      sql.NullString
-	Category sql.NullString
-	ID       int64
+	Name     sql.NullString `json:"name"`
+	Sku      sql.NullString `json:"sku"`
+	Category sql.NullString `json:"category"`
+	ID       int64          `json:"id"`
 }
 
 func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) error {
@@ -584,13 +566,13 @@ WHERE Id = ?
 `
 
 type UpdatePermissionParams struct {
-	Viewtelemetry sql.NullBool
-	Viewitems     sql.NullBool
-	Manageitems   sql.NullBool
-	Preparetags   sql.NullBool
-	Manageusers   sql.NullBool
-	Lastupdated   sql.NullTime
-	ID            int64
+	Viewtelemetry sql.NullBool `json:"viewtelemetry"`
+	Viewitems     sql.NullBool `json:"viewitems"`
+	Manageitems   sql.NullBool `json:"manageitems"`
+	Preparetags   sql.NullBool `json:"preparetags"`
+	Manageusers   sql.NullBool `json:"manageusers"`
+	Lastupdated   sql.NullTime `json:"lastupdated"`
+	ID            int64        `json:"id"`
 }
 
 func (q *Queries) UpdatePermission(ctx context.Context, arg UpdatePermissionParams) error {
@@ -616,11 +598,11 @@ WHERE Id = ?
 `
 
 type UpdateTagParams struct {
-	Uid      sql.NullString
-	Item     sql.NullInt64
-	Quantity sql.NullInt64
-	Tagtype  sql.NullString
-	ID       int64
+	Uid      sql.NullString `json:"uid"`
+	Item     sql.NullInt64  `json:"item"`
+	Quantity sql.NullInt64  `json:"quantity"`
+	Tagtype  sql.NullString `json:"tagtype"`
+	ID       int64          `json:"id"`
 }
 
 func (q *Queries) UpdateTag(ctx context.Context, arg UpdateTagParams) error {
@@ -647,14 +629,14 @@ WHERE Id = ?
 `
 
 type UpdateTransactionParams struct {
-	Tag                  sql.NullInt64
-	Item                 sql.NullInt64
-	Quantitychanged      sql.NullInt64
-	Newquantity          sql.NullInt64
-	Transactiondirection sql.NullString
-	Source               sql.NullString
-	Timestamp            sql.NullTime
-	ID                   int64
+	Tag                  sql.NullInt64  `json:"tag"`
+	Item                 sql.NullInt64  `json:"item"`
+	Quantitychanged      sql.NullInt64  `json:"quantitychanged"`
+	Newquantity          sql.NullInt64  `json:"newquantity"`
+	Transactiondirection sql.NullString `json:"transactiondirection"`
+	Source               sql.NullString `json:"source"`
+	Timestamp            sql.NullTime   `json:"Timestamp"`
+	ID                   int64          `json:"id"`
 }
 
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
@@ -680,10 +662,10 @@ WHERE Id = ?
 `
 
 type UpdateUserParams struct {
-	Username       sql.NullString
-	Passworddigest sql.NullString
-	Permissions    sql.NullInt64
-	ID             int64
+	Username       sql.NullString `json:"username"`
+	Passworddigest sql.NullString `json:"passworddigest"`
+	Permissions    sql.NullInt64  `json:"permissions"`
+	ID             int64          `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="forest">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RFID Inventory Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+    {{ template "navbar" . }}
+
+    <div class="grid grid-cols-3 gap-3 p-5">
+        {{ if .Permission.Viewtelemetry }}
+        <div class="card bg-slate-500 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Telemetry</h5>
+                <p class="card-text">
+                    View telemetry data from all readers
+                </p>
+                <div class="card-actions justify-end">
+                    <a href="#" class="btn btn-primary">Go There</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+
+        {{ if or .Permission.Viewitems .Permission.Manageitems }}
+        <div class="card bg-slate-500 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Items</h5>
+                <p class="card-text">
+                    See and manage items
+                </p>
+                <div class="card-actions justify-end">
+                    <a href="/dashboard/items/" class="btn btn-primary">Go There</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+
+        {{ if .Permission.Preparetags }}
+        <div class="card bg-slate-500 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Prepare Tags</h5>
+                <p class="card-text">
+                    Prepare items for RFID tagging
+                </p>
+                <div class="card-actions justify-end">
+                    <a href="#" class="btn btn-primary">Go There</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+
+        {{ if .Permission.Manageusers }}
+        <div class="card bg-slate-500 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Manage Users</h5>
+                <p class="card-text">
+                    Manage dashboard user accounts
+                </p>
+                <div class="card-actions justify-end">
+                    <a href="#" class="btn btn-primary">Go There</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</body>
+
+<style>
+    html,
+    body {
+        overflow: hidden;
+        margin: 0;
+        height: 100%;
+    }
+</style>
+
+</html>

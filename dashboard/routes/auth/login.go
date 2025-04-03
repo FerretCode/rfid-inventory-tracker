@@ -2,8 +2,7 @@ package auth
 
 import (
 	"database/sql"
-	"encoding/json"
-	"io"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -12,17 +11,20 @@ import (
 	"github.com/matthewhartstonge/argon2"
 )
 
-func Login(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
-	loginRequest := types.LoginRequest{}
+func RenderLoginTemplate(w http.ResponseWriter, r *http.Request, template *template.Template) error {
+	return template.ExecuteTemplate(w, "login.html", nil)
+}
 
-	body, err := io.ReadAll(r.Body)
+func Login(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
+	loginRequest := types.SignupRequest{}
+
+	err := r.ParseForm()
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(body, &loginRequest); err != nil {
-		return err
-	}
+	loginRequest.Username = r.PostFormValue("username")
+	loginRequest.Password = r.PostFormValue("password")
 
 	tx, err := ctx.DB.Begin()
 	if err != nil {
@@ -78,7 +80,6 @@ func Login(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) err
 		return err
 	}
 
-	w.WriteHeader(200)
 	http.Redirect(w, r, "/dashboard/home", http.StatusFound)
 
 	return nil

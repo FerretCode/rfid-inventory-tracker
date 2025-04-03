@@ -17,7 +17,7 @@ INSERT INTO users (
     PasswordDigest,
     Permissions
 ) VALUES (
-    ?, ?, ?, ?
+    NULL, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdateUser :exec
@@ -48,7 +48,7 @@ INSERT INTO permissions (
     PrepareTags,
     ManageUsers
 ) VALUES (
-    ?, ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdatePermission :exec
@@ -80,7 +80,7 @@ INSERT INTO items (
     Sku,
     Category
 ) VALUES (
-    ?, ?, ?, ?
+    NULL, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdateItem :exec
@@ -110,7 +110,7 @@ INSERT INTO tags (
     Quantity,
     TagType
 ) VALUES (
-    ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdateTag :exec
@@ -144,7 +144,7 @@ INSERT INTO transactions (
     Source,
     "Timestamp"
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?
+    NULL, ?, ?, ?, ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdateTransaction :exec

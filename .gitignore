@@ -1,2 +1,3 @@
 reader/compile_commands.json
 reader/lib/*/build
+dashboard/tmp/

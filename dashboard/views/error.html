@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="forest">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RFID Inventory Tracker</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    {{ template "navbar" . }}
+
+    <div class="flex">
+        <div class="m-auto">
+            <div class="card" style="width: 18rem">
+                <div class="card-body">
+                    <h5 class="card-title">An error occurred.</h5>
+                    <p>Error Status: {{ .Status }}</p>
+                    <p>Error Message: {{ .Error }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<style>
+    html,
+    body {
+        overflow: hidden;
+        margin: 0;
+        height: 100%;
+    }
+</style>
+
+</html>

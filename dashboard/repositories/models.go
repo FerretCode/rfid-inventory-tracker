@@ -9,56 +9,56 @@ import (
 )
 
 type GooseDbVersion struct {
-	ID        int64
-	VersionID int64
-	IsApplied int64
-	Tstamp    sql.NullTime
+	ID        int64        `json:"id"`
+	VersionID int64        `json:"version_id"`
+	IsApplied int64        `json:"is_applied"`
+	Tstamp    sql.NullTime `json:"tstamp"`
 }
 
 type Item struct {
-	ID       int64
-	Name     sql.NullString
-	Sku      sql.NullString
-	Category sql.NullString
+	ID       int64          `json:"id"`
+	Name     sql.NullString `json:"name"`
+	Sku      sql.NullString `json:"sku"`
+	Category sql.NullString `json:"category"`
 }
 
 type Permission struct {
-	ID            int64
-	Viewtelemetry sql.NullBool
-	Viewitems     sql.NullBool
-	Manageitems   sql.NullBool
-	Preparetags   sql.NullBool
-	Manageusers   sql.NullBool
-	Lastupdated   sql.NullTime
+	ID            int64        `json:"id"`
+	Viewtelemetry sql.NullBool `json:"viewtelemetry"`
+	Viewitems     sql.NullBool `json:"viewitems"`
+	Manageitems   sql.NullBool `json:"manageitems"`
+	Preparetags   sql.NullBool `json:"preparetags"`
+	Manageusers   sql.NullBool `json:"manageusers"`
+	Lastupdated   sql.NullTime `json:"lastupdated"`
 }
 
 type SqliteSequence struct {
-	Name interface{}
-	Seq  interface{}
+	Name interface{} `json:"name"`
+	Seq  interface{} `json:"seq"`
 }
 
 type Tag struct {
-	ID       int64
-	Uid      sql.NullString
-	Item     sql.NullInt64
-	Quantity sql.NullInt64
-	Tagtype  sql.NullString
+	ID       int64          `json:"id"`
+	Uid      sql.NullString `json:"uid"`
+	Item     sql.NullInt64  `json:"item"`
+	Quantity sql.NullInt64  `json:"quantity"`
+	Tagtype  sql.NullString `json:"tagtype"`
 }
 
 type Transaction struct {
-	ID                   int64
-	Tag                  sql.NullInt64
-	Item                 sql.NullInt64
-	Quantitychanged      sql.NullInt64
-	Newquantity          sql.NullInt64
-	Transactiondirection sql.NullString
-	Source               sql.NullString
-	Timestamp            sql.NullTime
+	ID                   int64          `json:"id"`
+	Tag                  sql.NullInt64  `json:"tag"`
+	Item                 sql.NullInt64  `json:"item"`
+	Quantitychanged      sql.NullInt64  `json:"quantitychanged"`
+	Newquantity          sql.NullInt64  `json:"newquantity"`
+	Transactiondirection sql.NullString `json:"transactiondirection"`
+	Source               sql.NullString `json:"source"`
+	Timestamp            sql.NullTime   `json:"Timestamp"`
 }
 
 type User struct {
-	ID             int64
-	Username       sql.NullString
-	Passworddigest sql.NullString
-	Permissions    sql.NullInt64
+	ID             int64          `json:"id"`
+	Username       sql.NullString `json:"username"`
+	Passworddigest sql.NullString `json:"passworddigest"`
+	Permissions    sql.NullInt64  `json:"permissions"`
 }

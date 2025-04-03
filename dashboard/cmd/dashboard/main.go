@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/ferretcode/rfid-inventory-tracker/repositories"
 	"github.com/ferretcode/rfid-inventory-tracker/routes/auth"
+	"github.com/ferretcode/rfid-inventory-tracker/routes/dashboard"
+	"github.com/ferretcode/rfid-inventory-tracker/routes/dashboard/items"
 	"github.com/ferretcode/rfid-inventory-tracker/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,6 +24,27 @@ import (
 
 var config types.Config
 var logger *slog.Logger
+var templates *template.Template
+
+func parseTemplates() error {
+	var err error
+
+	files := []string{
+		"./views/fragments/navbar.html",
+		"./views/error.html",
+		"./views/dashboard/home.html",
+		"./views/dashboard/items.html",
+		"./views/auth/signup.html",
+		"./views/auth/login.html",
+	}
+
+	templates, err = template.ParseFiles(files...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func main() {
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -47,6 +71,12 @@ func main() {
 	}
 	defer conn.Close()
 
+	err = parseTemplates()
+	if err != nil {
+		slog.Error("error parsing html templates", "err", err)
+		return
+	}
+
 	repositories := repositories.New(conn)
 	argon2 := argon2.DefaultConfig()
 
@@ -65,24 +95,50 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/auth", func(r chi.Router) {
+		r.Get("/signup", func(w http.ResponseWriter, r *http.Request) {
+			handleError(auth.RenderSignupTemplate(w, r, templates), w, "signup/render")
+		})
+
+		r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
+			handleError(auth.RenderLoginTemplate(w, r, templates), w, "login/render")
+		})
+
 		r.Post("/signup", func(w http.ResponseWriter, r *http.Request) {
-			handleError(auth.Signup(w, r, requestContext), w, "signup")
+			handleError(auth.Signup(w, r, requestContext), w, "signup/post")
 		})
 
 		r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
-			handleError(auth.Login(w, r, requestContext), w, "login")
+			handleError(auth.Login(w, r, requestContext), w, "login/post")
 		})
 	})
 
 	r.Route("/dashboard", func(r chi.Router) {
-		r.Use(auth.CheckAuth(&config, repositories))
+		r.Use(auth.CheckAuth(&config, repositories, logger))
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/dashboard/home", http.StatusFound)
 		})
 
 		r.Get("/home", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(200)
+			handleError(dashboard.Home(w, r, templates), w, "dashboard/home")
 		})
+
+		r.Route("/items", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+				handleError(items.Items(w, r, templates, repositories), w, "items/render")
+			})
+
+			r.Post("/create", func(w http.ResponseWriter, r *http.Request) {
+				handleError(items.CreateItem(w, r, requestContext), w, "items/create")
+			})
+
+			r.Get("/get/{item_id}", func(w http.ResponseWriter, r *http.Request) {
+				handleError(items.GetItem(w, r, requestContext), w, "items/get")
+			})
+
+			r.Post("/update", func(w http.ResponseWriter, r *http.Request) {})
+			r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {})
+		})
+
 	})
 
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r)
