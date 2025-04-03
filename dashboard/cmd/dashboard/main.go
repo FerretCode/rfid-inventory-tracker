@@ -38,6 +38,7 @@ func parseTemplates() error {
 		"./views/error.html",
 		"./views/dashboard/home.html",
 		"./views/dashboard/items.html",
+		"./views/dashboard/tags.html",
 		"./views/auth/signup.html",
 		"./views/auth/login.html",
 	}
@@ -165,10 +166,9 @@ func main() {
 
 		r.Route("/tags", func(r chi.Router) {
 			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-
+				handleError(tags.Tags(w, r, templates, repositories), w, "tags/render")
 			})
 
-			r.Post("/create", func(w http.ResponseWriter, r *http.Request) {})
 			r.Get("/get/{tag_id}", func(w http.ResponseWriter, r *http.Request) {})
 			r.Post("/update", func(w http.ResponseWriter, r *http.Request) {})
 			r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {})

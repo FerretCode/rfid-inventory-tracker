@@ -64,7 +64,7 @@ func Tags(w http.ResponseWriter, r *http.Request, templates *template.Template, 
 		})
 	}
 
-	err = templates.ExecuteTemplate(w, "items.html", tagsData{
+	err = templates.ExecuteTemplate(w, "tags.html", tagsData{
 		User:       r.Context().Value("user").(repositories.User),
 		Permission: r.Context().Value("permission").(repositories.Permission),
 		Tags:       webTags,
@@ -96,7 +96,7 @@ func (h *MQTTHandler) CreateTag(client mqtt.Client, msg mqtt.Message) {
 	qtx := h.Repositories.WithTx(tx)
 
 	_, err = qtx.CreateTag(*h.Ctx, repositories.CreateTagParams{
-		Uid:      sql.NullString{string(createTagRequest.Uid), true},
+		Uid:      sql.NullString{createTagRequest.Uid, true},
 		Item:     sql.NullInt64{createTagRequest.ItemId, true},
 		Quantity: sql.NullInt64{createTagRequest.Quantity, true},
 	})
@@ -121,7 +121,7 @@ func UpdateItem(w http.ResponseWriter, r *http.Request, ctx types.RequestContext
 	return nil
 }
 
-func GetItem(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
+func GetTag(w http.ResponseWriter, r *http.Request, ctx types.RequestContext) error {
 	itemId := chi.URLParam(r, "item_id")
 
 	id, err := strconv.Atoi(itemId)

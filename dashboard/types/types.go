@@ -38,7 +38,7 @@ type LoginRequest struct {
 }
 
 type CreateTagRequest struct {
-	Uid      []byte `json:"tag"`
+	Uid      string `json:"tag"`
 	Quantity int64  `json:"tag_quantity"`
 	ItemId   int64  `json:"item_id"`
 }
