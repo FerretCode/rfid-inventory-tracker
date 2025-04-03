@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/ferretcode/rfid-inventory-tracker/repositories"
 	"github.com/ferretcode/rfid-inventory-tracker/routes/auth"
 	"github.com/ferretcode/rfid-inventory-tracker/routes/dashboard"
 	"github.com/ferretcode/rfid-inventory-tracker/routes/dashboard/items"
+	"github.com/ferretcode/rfid-inventory-tracker/routes/dashboard/tags"
 	"github.com/ferretcode/rfid-inventory-tracker/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -71,6 +75,22 @@ func main() {
 	}
 	defer conn.Close()
 
+	mqtt.DEBUG = log.New(os.Stdout, "MQTTDebug: ", 0)
+	mqtt.ERROR = log.New(os.Stderr, "MQTTError: ", 0)
+
+	opts := mqtt.
+		NewClientOptions().
+		AddBroker(fmt.Sprintf("tcp://%s:%d", config.MQTTBrokerHost, config.MQTTBrokerPort)).
+		SetClientID("dashboard").
+		SetKeepAlive(60 * time.Second).
+		SetPingTimeout(1 * time.Second)
+
+	c := mqtt.NewClient(opts)
+	if token := c.Connect(); token.Wait() && token.Error() != nil {
+		slog.Error("error connecting to mqtt broker", "err", token.Error())
+		return
+	}
+
 	err = parseTemplates()
 	if err != nil {
 		slog.Error("error parsing html templates", "err", err)
@@ -80,12 +100,16 @@ func main() {
 	repositories := repositories.New(conn)
 	argon2 := argon2.DefaultConfig()
 
+	mqttHandler := tags.NewMQTTHandler(repositories, conn, &ctx, logger)
+
+	c.Subscribe("item_registration_completed", 1, mqttHandler.CreateTag)
 	requestContext := types.RequestContext{
 		DB:           conn,
 		Repositories: repositories,
 		Ctx:          ctx,
 		Config:       &config,
 		Argon2:       &argon2,
+		MQTTConn:     c,
 	}
 
 	r := chi.NewRouter()
@@ -139,6 +163,16 @@ func main() {
 			r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {})
 		})
 
+		r.Route("/tags", func(r chi.Router) {
+			r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+
+			})
+
+			r.Post("/create", func(w http.ResponseWriter, r *http.Request) {})
+			r.Get("/get/{tag_id}", func(w http.ResponseWriter, r *http.Request) {})
+			r.Post("/update", func(w http.ResponseWriter, r *http.Request) {})
+			r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {})
+		})
 	})
 
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r)
