@@ -48,4 +48,8 @@ void process_incoming_item_pub(void* arg, const char* topic, u32_t total_len);
  */
 void process_incoming_item_data(void* arg, const u8_t* data, u16_t total_len, u8_t flags);
 
+void bytes_to_hex(const unsigned char* bytes, size_t len, char* out);
+
+void hex_to_bytes(const char* hex, unsigned char* bytes, size_t* out_len);
+
 #endif // ITEM_REGISTRATION_H_

@@ -3,6 +3,38 @@
 #include "mqtt.h"
 #include "string.h"
 
+void bytes_to_hex(const unsigned char* bytes, size_t len, char* out)
+{
+    for (size_t i = 0; i < len; i++) {
+        sprintf(out + (i * 2), "%02X", bytes[i]);
+    }
+    out[len * 2] = '\0';
+}
+
+void hex_to_bytes(const char* hex, unsigned char* bytes, size_t* out_len)
+{
+    size_t len = 0;
+
+    while (hex[len])
+        len++;
+    if (len % 2 != 0) {
+        fprintf(stderr, "Invalid hex string: Odd length\n");
+        *out_len = 0;
+        return;
+    }
+
+    *out_len = len / 2;
+
+    for (size_t i = 0; i < *out_len; i++) {
+        if (!isxdigit(hex[i * 2]) || !isxdigit(hex[i * 2 + 1])) {
+            fprintf(stderr, "Invalid hex character\n");
+            *out_len = 0;
+            return;
+        }
+        sscanf(hex + (i * 2), "%2hhx", &bytes[i]);
+    }
+}
+
 void enqueue_task(Task** head, ITEM_T* item)
 {
     struct Task* new_task = (struct Task*)malloc(sizeof(struct Task));
@@ -140,11 +172,11 @@ void publish_item_registered(MQTT_CLIENT_T* state, ITEM_T* item)
     cJSON_AddNumberToObject(root, "item_id", item->item_id);
     cJSON_AddNumberToObject(root, "tag_quantity", item->tag_quantity);
 
-    cJSON* tag = cJSON_CreateArray();
-    for (size_t i = 0; i < sizeof(item->tag); i++) {
-        cJSON_AddItemToArray(tag, cJSON_CreateNumber(item->tag[i]));
-    }
-    cJSON_AddItemToObject(root, "tag", tag);
+    char hexTag[5];
+
+    bytes_to_hex(item->tag, sizeof(item->tag), hexTag);
+
+    cJSON_AddStringToObject(root, "tag", hexTag);
 
     char* json_str = cJSON_Print(root);
     cJSON_Delete(root);
